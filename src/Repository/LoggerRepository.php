@@ -20,26 +20,44 @@ class LoggerRepository extends ServiceEntityRepository
         parent::__construct($registry, Logger::class);
     }
 
-    public function findLatest(): array
+    public function findLatest(DateTimeImmutable $startedAt = null, DateTimeImmutable $endedAt = null): array
     {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.launchedAt > :date')
-            ->setParameter('date', (new DateTimeImmutable())->modify('- 1 day'))
-            ->orderBy('l.launchedAt', 'ASC')
+        $query = $this->createQueryBuilder('l')
+            ->andWhere('l.launchedAt > :started_at')
+            ->setParameter('started_at', $startedAt ?? (new DateTimeImmutable())->modify('- 1 day'))
+            ->orderBy('l.launchedAt', 'ASC');
+
+        if (!is_null($endedAt)) {
+            $query->andWhere('l.launchedAt < :ended_at')
+                ->setParameter('ended_at', $endedAt);
+        }
+
+        return $query
             ->getQuery()
-            ->getResult()
-        ;
+            ->getResult();
     }
 
-    /*
-    public function findOneBySomeField($value): ?Logger
+    public function getAvgUpload(): float
     {
         return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
+            ->select('AVG(l.upload)')
             ->getQuery()
-            ->getOneOrNullResult()
-        ;
+            ->getSingleScalarResult();
     }
-    */
+
+    public function getAvgDownload(): float
+    {
+        return $this->createQueryBuilder('l')
+            ->select('AVG(l.download)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function getAvgLatency(): float
+    {
+        return $this->createQueryBuilder('l')
+            ->select('AVG(l.latency)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
