@@ -21,7 +21,7 @@ class LoggerChart
     public function getHomeChart(array $logs): Chart
     {
         $labels = array_map(function (Logger $logger) {
-            return $logger->getLaunchedAt()->format('H:i');
+            return $logger->getLaunchedAt()->format('Y-m-d H:i:s');
         }, $logs);
 
         $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);

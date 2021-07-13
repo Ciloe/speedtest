@@ -20,7 +20,7 @@ class LoggerRepository extends ServiceEntityRepository
         parent::__construct($registry, Logger::class);
     }
 
-    public function findLatest(DateTimeImmutable $startedAt = null, DateTimeImmutable $endedAt = null): array
+    public function findLatest(?DateTimeImmutable $startedAt = null, ?DateTimeImmutable $endedAt = null): array
     {
         $query = $this->createQueryBuilder('l')
             ->andWhere('l.launchedAt > :started_at')
