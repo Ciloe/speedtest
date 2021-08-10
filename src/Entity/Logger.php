@@ -39,8 +39,21 @@ class Logger
 
     /**
      * @ORM\Column(type="json")
+     * Example : {"receive": 123, "sent": 123}
      */
     private $bytes = [];
+
+    /**
+     * @ORM\Column(type="json")
+     * Example :
+     *  {
+     *      "location": {"lat": 12.22, "lon": 12.34},
+     *      "identity": {"sponsor": "Test", "name": "Test", "country": "Test"},
+     *      "id": 123,
+     *      "url": "dkfsjlkdjfsf"
+     *  }
+     */
+    private $server = [];
 
     public function getId(): ?int
     {
@@ -103,6 +116,18 @@ class Logger
     public function setBytes(array $bytes): self
     {
         $this->bytes = $bytes;
+
+        return $this;
+    }
+
+    public function getServer(): array
+    {
+        return $this->server;
+    }
+
+    public function setServer(array $server): self
+    {
+        $this->server = $server;
 
         return $this;
     }

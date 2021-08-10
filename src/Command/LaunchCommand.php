@@ -37,12 +37,10 @@ class LaunchCommand extends Command
         try {
             $speedTest = new Speedtest();
             $speedTest->getServers();
-            $speedTest->getBestServer();
+            $server = $speedTest->getBestServer();
             $speedTest->download();
             $speedTest->upload();
             $results = $speedTest->results();
-
-            $io->note('Speedtest finish');
 
             $logger = new Logger();
             $logger->setUpload($results->getUpload())
@@ -50,6 +48,12 @@ class LaunchCommand extends Command
                 ->setLatency($results->getLatency())
                 ->setBytes(['receive' => $results->getBytesReceived(), 'sent' => $results->getBytesSent()])
                 ->setLaunchedAt(new DateTimeImmutable())
+                ->setServer([
+                    'location' => ['lat' => $server['lat'], 'lon' => $server['lon']],
+                    'identity' => ['sponsor' => $server['sponsor'], 'name' => $server['name'], 'country' => $server['country']],
+                    'id' => $server['id'],
+                    'url' => $server['url'],
+                ])
             ;
 
             $this->manager->persist($logger);
