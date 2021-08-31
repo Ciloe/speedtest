@@ -45,7 +45,7 @@ class LaunchCommand extends Command
             $logger = new Logger();
             $logger->setUpload($results->getUpload())
                 ->setDownload($results->getDownload())
-                ->setLatency($results->getLatency())
+                ->setLatency(is_string($results->getLatency()) ? (float)$results->getLatency() : $results->getLatency())
                 ->setBytes(['receive' => $results->getBytesReceived(), 'sent' => $results->getBytesSent()])
                 ->setLaunchedAt(new DateTimeImmutable())
                 ->setServer([

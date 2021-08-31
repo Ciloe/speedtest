@@ -21,7 +21,11 @@ class LoggerChart
     public function getHomeChart(array $logs): Chart
     {
         $labels = array_map(function (Logger $logger) {
-            return $logger->getLaunchedAt()->format('Y-m-d H:i:s');
+            return sprintf(
+                '%s %s',
+                $logger->getLaunchedAt()->format('d H:i:s'),
+                $logger->getServer()['identity']['name'] ?? ''
+            );
         }, $logs);
 
         $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
