@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use Aln\Speedtest\Speedtest;
+use Aln\Speedtest\SpeedtestException;
 use App\Entity\Logger;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -61,8 +62,10 @@ class LaunchCommand extends Command
 
             $this->manager->commit();
             $io->success('Speedtest finish.');
-
-            return Command::SUCCESS;
+        } catch (SpeedtestException $e) {
+            $this->manager->rollback();
+            $this->logger->alert($e->getMessage(), ['commandLaunch']);
+            $io->error(sprintf('Speedtest error : %s', $e->getMessage()));
         } catch (Exception $e) {
             $this->manager->rollback();
             $this->logger->critical($e->getMessage(), ['commandLaunch']);
@@ -70,5 +73,7 @@ class LaunchCommand extends Command
 
             return Command::FAILURE;
         }
+
+        return Command::SUCCESS;
     }
 }
