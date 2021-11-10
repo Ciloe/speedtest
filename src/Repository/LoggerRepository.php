@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\Logger;
 use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\AbstractQuery;
+use Doctrine\ORM\Query\ResultSetMappingBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -20,21 +22,33 @@ class LoggerRepository extends ServiceEntityRepository
         parent::__construct($registry, Logger::class);
     }
 
-    public function findLatest(?DateTimeImmutable $startedAt = null, ?DateTimeImmutable $endedAt = null): array
-    {
-        $query = $this->createQueryBuilder('l')
-            ->andWhere('l.launchedAt > :started_at')
+    public function findLatest(
+        ?DateTimeImmutable $startedAt = null,
+        ?DateTimeImmutable $endedAt = null,
+        ?string $sponsor = null,
+        ?string $city = null,
+    ): array {
+        $sql = <<<SQL
+SELECT l.* 
+FROM logger l
+WHERE l.launched_at > :started_at
+    AND CASE WHEN (:ended_at)::timestamp IS NOT NULL THEN l.launched_at < :ended_at ELSE true END 
+    AND CASE WHEN (:sponsor)::TEXT IS NOT NULL THEN l.server::TEXT LIKE CONCAT('%"sponsor":"', (:sponsor)::TEXT, '"%') ELSE true END 
+    AND CASE WHEN (:city)::TEXT IS NOT NULL THEN l.server::TEXT LIKE CONCAT('%"name":"', (:city)::TEXT, '"%') ELSE true END 
+ORDER BY l.launched_at
+SQL;
+
+        $rsm = new ResultSetMappingBuilder($this->_em);
+        $rsm->addRootEntityFromClassMetadata(Logger::class, 'l');
+
+        $query = $this->_em->createNativeQuery($sql, $rsm);
+        $query
             ->setParameter('started_at', $startedAt ?? (new DateTimeImmutable())->modify('- 1 day'))
-            ->orderBy('l.launchedAt', 'ASC');
-
-        if (!is_null($endedAt)) {
-            $query->andWhere('l.launchedAt < :ended_at')
-                ->setParameter('ended_at', $endedAt);
-        }
-
-        return $query
-            ->getQuery()
-            ->getResult();
+            ->setParameter('ended_at', $endedAt)
+            ->setParameter('sponsor', $sponsor)
+            ->setParameter('city', $city)
+        ;
+        return $query->getResult(AbstractQuery::HYDRATE_SIMPLEOBJECT);
     }
 
     public function getAvgUpload(): float

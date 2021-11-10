@@ -19,12 +19,16 @@ class HomeController extends AbstractController
     {
         $startedAt = $request->get('started_at');
         $endedAt = $request->get('ended_at');
+        $sponsor = $request->get('sponsor');
+        $city = $request->get('city');
 
         return $this->render('home/index.html.twig', [
             'chart' => $service->getHomeChart(
                 $repository->findLatest(
                     !is_null($startedAt) ? new DateTimeImmutable($startedAt) : null,
-                    !is_null($endedAt) ? new DateTimeImmutable($endedAt) : null
+                    !is_null($endedAt) ? new DateTimeImmutable($endedAt) : null,
+                    !is_null($sponsor) ? $sponsor : null,
+                    !is_null($city) ? $city : null,
                 )
             ),
         ]);
